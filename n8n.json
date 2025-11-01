@@ -1,0 +1,248 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        336
+      ],
+      "id": "feffb3bf-1a87-41f6-a795-431c4d2fccb9",
+      "name": "Telegram Trigger",
+      "webhookId": "4d6abe42-867f-457f-8bd6-ffb4b7188e06",
+      "credentials": {
+        "telegramApi": {
+          "id": "w941VroDVs8wZkWW",
+          "name": "Tasu Test Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82346595-fb9b-4fec-aa3f-95ddc98d448c",
+              "name": "message.caption",
+              "value": "={{ $json.message.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "3001ac5f-23be-4667-bfaf-4e4a25158474",
+              "name": "message.photo[3].file_id",
+              "value": "={{ $json.message.photo[3].file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ee1e0de3-c3e6-4023-96b9-d337a7da44ee",
+              "name": "node",
+              "value": "17841465903297752",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        336
+      ],
+      "id": "0bbf8204-a14a-4bef-9e1e-75eb4d8e349b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://aee85cb97fa0.ngrok-free.app/upload-telegram",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file_id",
+              "value": "={{ $json.message.photo[3].file_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        336
+      ],
+      "id": "ae229ed2-5b29-4594-805a-6fa79b164cdc",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields').item.json.node }}",
+        "edge": "=media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.data.url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields').item.json.message.caption }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        16,
+        336
+      ],
+      "id": "f802dc17-cc44-49e3-97a6-04f59d59bd98",
+      "name": "Instagram Container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "0Dducbtao9yLRIWV",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields').item.json.node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('HTTP Request').item.json.data.url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields').item.json.message.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        256,
+        336
+      ],
+      "id": "637dd772-9169-491a-ab5b-d9060a5d4f4d",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "0Dducbtao9yLRIWV",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "Content Posted!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        336
+      ],
+      "id": "ed2e2d47-aea2-469f-a022-7c30bddab981",
+      "name": "Send a text message",
+      "webhookId": "b5ba5cbd-abf8-4a1f-a8dd-7fc6bb476163",
+      "credentials": {
+        "telegramApi": {
+          "id": "w941VroDVs8wZkWW",
+          "name": "Tasu Test Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Instagram Container ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Container ID": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "687e363bfe8152ec3a0f4157f28221f02c3159de4d6a691672a354f975709300"
+  }
+}

@@ -1,0 +1,43 @@
+# Aggiungi questi file a .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+
+# File temporanei
+temp/
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask (legacy)
+instance/
+.webassets-cache
+
+# Backup files
+*.bak
+*.backup
