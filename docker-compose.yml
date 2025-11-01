@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  instagram-bot:
+    build: .
+    container_name: instagram-publisher-bot
+    restart: unless-stopped
+
+    # Variabili d'ambiente (sostituisci con i tuoi valori)
+    environment:
+      # === TELEGRAM BOT ===
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+
+      # === STEEM BLOCKCHAIN ===
+      STEEM_USERNAME: "${STEEM_USERNAME}"
+      STEEM_WIF: "${STEEM_WIF}"
+      STEEM_NODES: "https://api.steemit.com,https://api.steemdb.com"
+      STEEM_AUTO_FIND_FASTEST: "true"
+
+      # === INSTAGRAM API ===
+      INSTAGRAM_ACCESS_TOKEN: "${INSTAGRAM_ACCESS_TOKEN}"
+      INSTAGRAM_ACCOUNT_ID: "${INSTAGRAM_ACCOUNT_ID}"
+      FACEBOOK_GRAPH_API_VERSION: "v23.0"
+
+      # === FACEBOOK APP (per refresh token) ===
+      FACEBOOK_APP_ID: "${FACEBOOK_APP_ID}"
+      FACEBOOK_APP_SECRET: "${FACEBOOK_APP_SECRET}"
+
+      # === MODALITÀ BOT ===
+      USE_WEBHOOK: "false"  # false per polling, true per webhook
+
+      # === WEBHOOK CONFIG (se USE_WEBHOOK=true) ===
+      WEBHOOK_URL: "${WEBHOOK_URL}"
+      WEBHOOK_PATH: "/webhook"
+      WEB_APP_HOST: "0.0.0.0"
+      WEB_APP_PORT: "8080"
+
+      # === ALTRE CONFIGURAZIONI ===
+      MAX_FILE_SIZE_MB: "10"
+      LOG_LEVEL: "INFO"
+      TEMP_DIR: "/app/temp"
+
+    # Volumi per persistenza dati
+    volumes:
+      - ./data:/app/data:rw
+      - ./temp:/app/temp:rw
+      - ./logs:/app/logs:rw
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Network
+    networks:
+      - instagram-bot-network
+
+# Rete isolata per il bot
+networks:
+  instagram-bot-network:
+    driver: bridge
+
+# Volumi persistenti
+volumes:
+  bot-data:
+  bot-temp:
+  bot-logs:

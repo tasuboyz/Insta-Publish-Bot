@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # Bot principale
+  instagram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: instagram-publisher-bot
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+    environment:
+      # === TELEGRAM BOT ===
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+
+      # === STEEM BLOCKCHAIN ===
+      STEEM_USERNAME: "${STEEM_USERNAME}"
+      STEEM_WIF: "${STEEM_WIF}"
+      STEEM_NODES: "https://api.steemit.com,https://api.steemdb.com"
+      STEEM_AUTO_FIND_FASTEST: "true"
+
+      # === INSTAGRAM API ===
+      INSTAGRAM_ACCESS_TOKEN: "${INSTAGRAM_ACCESS_TOKEN}"
+      INSTAGRAM_ACCOUNT_ID: "${INSTAGRAM_ACCOUNT_ID}"
+      FACEBOOK_GRAPH_API_VERSION: "v23.0"
+
+      # === FACEBOOK APP ===
+      FACEBOOK_APP_ID: "${FACEBOOK_APP_ID}"
+      FACEBOOK_APP_SECRET: "${FACEBOOK_APP_SECRET}"
+
+      # === MODALITÀ WEBHOOK ===
+      USE_WEBHOOK: "true"
+      WEBHOOK_URL: "${WEBHOOK_URL}"
+      WEBHOOK_PATH: "/webhook"
+      WEB_APP_HOST: "0.0.0.0"
+      WEB_APP_PORT: "8080"
+
+      # === REDIS ===
+      REDIS_URL: "redis://redis:6379"
+
+      # === ALTRE CONFIGURAZIONI ===
+      MAX_FILE_SIZE_MB: "10"
+      LOG_LEVEL: "INFO"
+      TEMP_DIR: "/app/temp"
+
+    volumes:
+      - bot-data:/app/data:rw
+      - bot-temp:/app/temp:rw
+      - bot-logs:/app/logs:rw
+
+    networks:
+      - bot-network
+      - proxy-network
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.instagram-bot.rule=Host(`${BOT_DOMAIN}`)"
+      - "traefik.http.routers.instagram-bot.entrypoints=websecure"
+      - "traefik.http.routers.instagram-bot.tls.certresolver=letsencrypt"
+      - "traefik.http.services.instagram-bot.loadbalancer.server.port=8080"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Redis per cache/sessioni (opzionale)
+  redis:
+    image: redis:7-alpine
+    container_name: instagram-bot-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - bot-network
+
+  # Reverse proxy (opzionale, decommenta se vuoi usare Traefik)
+  # traefik:
+  #   image: traefik:v2.10
+  #   container_name: instagram-bot-traefik
+  #   restart: unless-stopped
+  #   command:
+  #     - "--api.dashboard=true"
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--entrypoints.web.address=:80"
+  #     - "--entrypoints.websecure.address=:443"
+  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  #     - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+  #     - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "8080:8080"  # Dashboard Traefik
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - traefik-letsencrypt:/letsencrypt
+  #   networks:
+  #     - proxy-network
+  #   labels:
+  #     - "traefik.http.routers.traefik.rule=Host(`traefik.${BOT_DOMAIN}`)"
+  #     - "traefik.http.routers.traefik.entrypoints=websecure"
+  #     - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+  #     - "traefik.http.routers.traefik.service=api@internal"
+  #     - "traefik.http.routers.traefik.middlewares=auth"
+  #     - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERS}"
+
+networks:
+  bot-network:
+    driver: bridge
+  proxy-network:
+    driver: bridge
+
+volumes:
+  bot-data:
+    driver: local
+  bot-temp:
+    driver: local
+  bot-logs:
+    driver: local
+  redis-data:
+    driver: local
+  traefik-letsencrypt:
+    driver: local

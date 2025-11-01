@@ -1,0 +1,58 @@
+# File Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ambiente virtuale
+.venv/
+venv/
+env/
+ENV/
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database locale (usare volumi Docker)
+bot_data.db
+
+# File temporanei
+temp/
+*.tmp
+*.log
+
+# Documentazione (non necessaria in produzione)
+*.md
+docs/
+
+# Test
+tests/
+test_*.py
+.pytest_cache/
+
+# File di configurazione locali
+.env.local
+.env.development
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# N8N workflow (se non necessario)
+n8n.json
+
+# Script di avvio locali
+start_bot.ps1
+run.py
